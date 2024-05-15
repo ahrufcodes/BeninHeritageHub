@@ -29,3 +29,7 @@ streamlit run app.py
 
 Navigate to the app:
 Open your web browser and go to http://localhost:8501
+
+
+## Contact
+**For any inquiries or feedback, please contact ahrufdesign@gmail.com**
