@@ -22,17 +22,17 @@ def app1():
     st.title("Visualizing Benin, One Story at a Time")
     st.write("""
      
-- **Generate stunning images** based on cultural descriptions in English, Yoruba, and Fon.
+- **Generate stunning images** based on cultural descriptions in English, Yoruba, and French.
 - **Translate subtitles** seamlessly to and from Yoruba for your videos.
 - **Immerse yourself** in captivating stories and visual narratives that celebrate our traditions and history.
     """)
     st.audio("bhh.mp3", format="audio/mp3", autoplay=True)
 
     # Dropdown for cultural themes
-    themes = ["Traditional Attire", "Festivals", "Folklore"]
+    themes = ["Traditional Attire", "Festivals", "Folklore", "History", "Art and craft", "Cuisine" ]
     selected_theme = st.selectbox("Choose a cultural theme", themes)
     
-    Image_description = st.text_input("Enter a text to generate an image In Yoruba, English or Fon", key="img_desc")
+    Image_description = st.text_input("Enter a text to generate an image In Yoruba, English & French", key="img_desc")
 
     if st.button('Generate Image and Story'):
         if Image_description:
@@ -50,8 +50,8 @@ def app1():
             with st.expander("English"):
                 st.write(story_concepts["English"])
 
-            with st.expander("Fon"):
-                st.write(story_concepts["Fon"])
+            with st.expander("French"):
+                st.write(story_concepts["French"])
             
             # Feedback section
             st.subheader("Your Feedback")
@@ -65,8 +65,8 @@ def translate_to_yoruba(text):
     response = client.chat.completions.create(
         model="gpt-4-turbo",
         messages=[
-            {"role": "system", "content": "You are a bilingual AI proficient in Yoruba and Fon languages. You will translate text based on its original language: from English to Yoruba and Fon, and from Yoruba or Fon to English. Maintain the linguistic and cultural nuances in your translations."},
-            {"role": "user", "content": f"Translate the following text: '{text}'\n\nInstructions:\n- If the text is in English, translate it to both Yoruba and Fon.\n- If the text is in Yoruba or Fon, translate it to English."}
+            {"role": "system", "content": "You are a bilingual AI proficient in Yoruba and French languages. You will translate text based on its original language: from English to Yoruba and French, and from Yoruba or French to English. Maintain the linguistic and cultural nuances in your translations."},
+            {"role": "user", "content": f"Translate the following text: '{text}'\n\nInstructions:\n- If the text is in English, translate it to both Yoruba and French.\n- If the text is in Yoruba or French, translate it to English."}
         ],
         temperature=1,
         max_tokens=256,
@@ -106,11 +106,11 @@ def generate_short_story(translated_text):
     )
     story_english = response_english.choices[0].message.content.strip()
 
-    response_fon = client.chat.completions.create(
+    response_french = client.chat.completions.create(
         model="gpt-4-turbo",
         messages=[
-            {"role": "system", "content": "You are a creative writer from the Benin Republic who specializes in writing short story concepts to captivate tourists and preserve cultural heritage. You write the stories in Fon, maintaining linguistic accuracy."},
-            {"role": "user", "content": f"Create a short story concept based on the following text: '{translated_text}' in Fon."}
+            {"role": "system", "content": "You are a creative writer from the Benin Republic who specializes in writing short story concepts to captivate tourists and preserve cultural heritage. You write the stories in French, maintaining linguistic accuracy."},
+            {"role": "user", "content": f"Create a short story concept based on the following text: '{translated_text}' in French."}
         ],
         temperature=1,
         max_tokens=256,
@@ -118,7 +118,7 @@ def generate_short_story(translated_text):
         frequency_penalty=0,
         presence_penalty=0
     )
-    story_fon = response_fon.choices[0].message.content.strip()
+    story_french = response_french.choices[0].message.content.strip()
 
     # Added cultural insights or educational content
     cultural_insights = "This story highlights the significance of traditional Yoruba festivals, showcasing their rich heritage and cultural values."
@@ -126,7 +126,7 @@ def generate_short_story(translated_text):
     return {
         "Yoruba": f"{story_yoruba}\n\nCultural Insights: {cultural_insights}",
         "English": f"{story_english}\n\nCultural Insights: {cultural_insights}",
-        "Fon": f"{story_fon}\n\nCultural Insights: {cultural_insights}"
+        "French": f"{story_french}\n\nCultural Insights: {cultural_insights}"
     }
 
 def generate_image(prompt):
@@ -143,10 +143,11 @@ def generate_image(prompt):
 # Function for App 2: SRT Translator
 def app2():
     st.title('SRT File Translator to Yoruba or Fon')
+    st.image('img/srt.png', use_column_width=True)
 
     # Language selection
     languages = ["Yoruba", "Fon"]
-    selected_language = st.selectbox("Choose a language for translation", languages, key="language_select")
+    selected_language = st.selectbox("Choose a language you want the subtitle to be translated to", languages, key="language_select")
 
     def translate_to_language_batch(texts, target_language):
         joined_texts = "\n\n".join(texts)
@@ -157,7 +158,7 @@ def app2():
                 {"role": "user", "content": f"Translate the following texts to {target_language}:\n\n{joined_texts}"}
             ],
             temperature=1,
-            max_tokens=3000,
+            max_tokens=2000,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0
@@ -170,7 +171,7 @@ def app2():
         subtitles = list(srt.parse(srt_content))
 
         texts_to_translate = [subtitle.content for subtitle in subtitles]
-        batch_size = 10  # Adjust batch size as needed
+        batch_size = 40  # batch size No, helps with the number of APi call done at a time
         translated_texts = []
 
         # Initialize progress bar
@@ -195,14 +196,14 @@ def app2():
         translated_srt_content = srt.compose(translated_subtitles)
         return translated_srt_content
 
-    uploaded_file = st.file_uploader("Choose an SRT file to translate", type="srt")
+    uploaded_file = st.file_uploader("Choose an SUBTITLE file to translate", type="srt")
 
     if uploaded_file is not None:
-        with st.spinner('Translating...'):
+        with st.spinner(f"A moment Please, we're translating your subtitle for you to enjoy your movie..."):
             start_time = time.time()
             translated_srt_content = translate_srt(uploaded_file, selected_language)
             end_time = time.time()
-            st.success(f'Translation completed in {end_time - start_time:.2f} seconds')
+            st.success(f'Yay! Translation completed in {end_time - start_time:.2f} seconds')
 
         st.download_button(
             label="Download Translated SRT",
@@ -213,7 +214,7 @@ def app2():
 
 # Main function to combine both apps
 def main():
-    st.sidebar.title('Navigation')
+    st.sidebar.title('Navbar')
     app_choice = st.sidebar.radio('Go to', ['Generate Image and Story', 'Subtitle Translator'])
 
     if app_choice == 'Generate Image and Story':
